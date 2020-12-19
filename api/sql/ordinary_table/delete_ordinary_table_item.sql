@@ -1,0 +1,1 @@
+DELETE FROM example.ordinary_table WHERE id = {0};

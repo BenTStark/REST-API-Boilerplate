@@ -1,0 +1,1 @@
+UPDATE example.vv_image SET {0} = {1} WHERE id = {2};

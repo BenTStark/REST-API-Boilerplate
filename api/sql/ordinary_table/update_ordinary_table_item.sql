@@ -1,0 +1,1 @@
+UPDATE example.ordinary_table SET info = {0} WHERE id = {1};

@@ -1,0 +1,1 @@
+DELETE FROM example.vt_timeseries_table WHERE id = {0} AND valid_to = {1}

@@ -1,0 +1,1 @@
+INSERT INTO example.vv_image (id,image_url,image_name) VALUES ({0},{1},{2});

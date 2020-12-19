@@ -1,0 +1,1 @@
+INSERT INTO example.ordinary_table (info) VALUES ({0});

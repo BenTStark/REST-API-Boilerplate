@@ -1,0 +1,1 @@
+DELETE FROM example.vv_versionised_table WHERE id = {0};

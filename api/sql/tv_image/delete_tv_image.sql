@@ -1,0 +1,1 @@
+DELETE FROM example.vv_image WHERE id = {0};

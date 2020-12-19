@@ -1,0 +1,1 @@
+INSERT INTO example.vt_timeseries_table (id,info,valid_from,valid_to,modified_at,changed_by) VALUES ({0},{1},{2},{3},now(),{4});

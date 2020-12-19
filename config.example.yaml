@@ -1,0 +1,14 @@
+#################
+# Database      #
+#################
+database:
+  hostname: localhost
+  database: stkgarching
+  username: user
+  password: password
+
+##################
+## File system   #
+##################
+path:
+  upload_file_path: /home/miro/workspace/  
