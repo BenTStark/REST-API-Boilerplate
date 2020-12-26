@@ -73,17 +73,17 @@ class GetImageTableList(Resource):
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 
 uploadParser = reqparse.RequestParser()
-uploadParser.add_argument('image', type=werkzeug.datastructures.FileStorage, required=True)
+uploadParser.add_argument('filename',location='files', type=werkzeug.datastructures.FileStorage, required=False)
 class UploadImage(Resource):  
     @api.expect(uploadParser)
     def post(self):
         #pass
         args = uploadParser.parse_args()
         print(args)
-        uploaded_file = args['image']  # This is FileStorage instance
+        uploaded_file = args['filename']  # This is FileStorage instance
         print(uploaded_file)
-        filename = secure_filename(uploaded_file.filename)
-        return {'url': filename}, 201
+        #filename = secure_filename(uploaded_file.filename)
+        return ({'nextVal': args},201)
 
 
 
