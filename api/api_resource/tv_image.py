@@ -1,5 +1,5 @@
 from flask_restx import Resource, Namespace, fields
-from utils import file_processor, database_processor
+from utils import file_processor, database_processor, sql_processor
 from flask_restx import reqparse, inputs
 from flask import request
 import werkzeug
@@ -56,7 +56,7 @@ class GetImageTableList(Resource):
         QUERY_INSERT_IMAGE_TABLE = file_processor.read_sql_file(
         "sql/tv_image/insert_tv_image.sql")
         sql_creation = QUERY_INSERT_IMAGE_TABLE.format(args['id'], "\'{}\'".format(args['image_url']), "\'{}\'".format(args['image_name']))
-
+        sql_creation = sql_processor.handleNone(sql_creation)
         database_processor.insert_data_into_database(sql_creation)
         return 201
 

@@ -18,4 +18,3 @@ def insert_data_into_database(sql):
     connection.commit()
     cursor.close()
 
-  

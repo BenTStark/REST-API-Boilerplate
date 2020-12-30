@@ -1,5 +1,5 @@
 from flask_restx import Resource, Namespace, fields
-from utils import file_processor, database_processor
+from utils import file_processor, database_processor, sql_processor
 from flask_restx import reqparse, inputs
 from flask import request
 
@@ -7,10 +7,10 @@ api = Namespace('timeseries_table', description='Operations on table timeseries_
 
 model_timeseries_table = api.model('timeseries_table', {
     'id': fields.Integer(required=True, description='The identifier'),
-    'info': fields.String(required=True, description='Some info'),
+    'info': fields.String(required=False, description='Some info'),
     'valid_from': fields.DateTime(required=True, description='valid from'),
     'valid_to': fields.DateTime(required=True, description='valid to'),
-    'modified_at': fields.DateTime(required=True, description='modified at'),
+    'modified_at': fields.DateTime(required=False, description='modified at'),
     'changed_by': fields.String(required=True, description='changed_by')
 })
 
@@ -53,10 +53,10 @@ class GetTimeseriesTableListDate(Resource):
 
 postParser = reqparse.RequestParser()
 postParser.add_argument('id', required=True, type=int)
-postParser.add_argument('info', required=True, type=str)
+postParser.add_argument('info', required=False, type=str)
 postParser.add_argument('valid_from', required=True, type=inputs.datetime_from_iso8601)
 postParser.add_argument('valid_to', required=True, type=inputs.datetime_from_iso8601)
-postParser.add_argument('changed_by', required=True, type=str)
+postParser.add_argument('changed_by', required=False, type=str)
 
 
 deleteParser = reqparse.RequestParser()
@@ -69,7 +69,7 @@ class GetTimeseriesTableItem(Resource):
         QUERY_INSERT_TIMESERIES_TABLE_ITEM = file_processor.read_sql_file(
         "sql/timeseries_table/insert_timeseries_table_item.sql")
         sql_creation = QUERY_INSERT_TIMESERIES_TABLE_ITEM.format(args['id'], "\'{}\'".format(args['info']), "\'{}\'".format(args['valid_from']), "\'{}\'".format(args['valid_to']),"\'{}\'".format(args['changed_by']))
-
+        sql_creation = sql_processor.handleNone(sql_creation)
         database_processor.insert_data_into_database(sql_creation)
         return 201
 

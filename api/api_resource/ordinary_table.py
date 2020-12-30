@@ -1,5 +1,5 @@
 from flask_restx import Resource, Namespace, fields
-from utils import file_processor, database_processor
+from utils import file_processor, database_processor, sql_processor
 from flask_restx import reqparse, inputs
 from flask import request
 
@@ -86,6 +86,7 @@ class GetOrdinaryTableItem(Resource):
         QUERY_INSERT_ORDINARY_TABLE_ITEM = file_processor.read_sql_file(
             "sql/ordinary_table/insert_ordinary_table_item.sql")
         sql_creation = QUERY_INSERT_ORDINARY_TABLE_ITEM.format("\'{}\'".format(args['info']))
+        sql_creation = sql_processor.handleNone(sql_creation)
         database_processor.insert_data_into_database(sql_creation)
          # START Get nextVal
         QUERY_NEXTVAL_ORDINARY_TABLE = file_processor.read_sql_file(
