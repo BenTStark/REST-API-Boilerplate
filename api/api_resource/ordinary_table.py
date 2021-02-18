@@ -11,7 +11,9 @@ api = Namespace('ordinary_table', description='Operations on table ordinary_tabl
 # schema['payload']['info'] = fields.String(required=True, description='Info field for various text')
 
 model_ordinary_table = api.model('ordinary_table', {
-    'nextVal': fields.Integer(required=True, description='The next identifier;'),
+    'autofill': fields.Nested(api.model('ordinary_table_payload', {
+        'id': fields.Integer(required=True, description='The identifier; no primary key!')
+    })),
     'payload': fields.List(fields.Nested(api.model('ordinary_table_payload', {
         'id': fields.Integer(required=True, description='The identifier; no primary key!'),
         'info': fields.String(required=True, description='Info field for various text')
@@ -19,7 +21,9 @@ model_ordinary_table = api.model('ordinary_table', {
 })
 
 post_model_ordinary_table = api.model('ordinary_table_post', {
-    'nextVal': fields.Integer(required=True, description='The next identifier;')
+    'autofill': fields.Nested(api.model('ordinary_table_payload', {
+        'id': fields.Integer(required=True, description='The identifier; no primary key!')
+    }))
 })
 
 
@@ -29,17 +33,16 @@ class GetOrdinaryTableList(Resource):
     def get(self):          
         QUERY_SELECT_ORDINARY_TABLE = file_processor.read_sql_file(
             "sql/ordinary_table/select_ordinary_table.sql")
-        ordinaryTableList = database_processor.fetch_data_in_database(QUERY_SELECT_ORDINARY_TABLE)
-        column = ['id','info']
-        items = [dict(zip(column, row)) for row in ordinaryTableList]
-        # START Get nextVal
-        QUERY_NEXTVAL_ORDINARY_TABLE = file_processor.read_sql_file(
-            "sql/ordinary_table/nextval_ordinary_table.sql")
-        sql_creation = QUERY_NEXTVAL_ORDINARY_TABLE
-        nextVal = database_processor.fetch_data_in_database(sql_creation)
-        # END - Get nextVal
-        if items:
-            return {'payload': items, 'nextVal': nextVal[0][0]}
+        ordinaryTableList = database_processor.fetch_data_in_database_pd_dataframe(QUERY_SELECT_ORDINARY_TABLE).to_dict(orient="records")
+        
+        # START - Get nextId
+        QUERY_NEXTID_ORDINARY_TABLE = file_processor.read_sql_file(
+            "sql/ordinary_table/nextid_ordinary_table.sql")
+        sql_creation = QUERY_NEXTID_ORDINARY_TABLE
+        nextId = database_processor.fetch_data_in_database(sql_creation)
+        # END - Get nextId
+        if ordinaryTableList:
+            return {'payload': ordinaryTableList, 'autofill': {'id': nextId[0][0]}}
         api.abort(404)
 
 
@@ -63,19 +66,18 @@ class GetOrdinaryTableItem(Resource):
         QUERY_SELECT_ORDINARY_TABLE_ITEM = file_processor.read_sql_file(
             "sql/ordinary_table/select_ordinary_table_item.sql")
         sql_creation = QUERY_SELECT_ORDINARY_TABLE_ITEM.format(args['id'])
-        ordinaryTableListItem = database_processor.fetch_data_in_database(sql_creation)
-        column = ['id','info']
-        items = [dict(zip(column, row)) for row in ordinaryTableListItem]
-         # START Get nextVal
-        QUERY_NEXTVAL_ORDINARY_TABLE = file_processor.read_sql_file(
-            "sql/ordinary_table/nextval_ordinary_table.sql")
-        sql_creation = QUERY_NEXTVAL_ORDINARY_TABLE
-        nextVal = database_processor.fetch_data_in_database(sql_creation)
-        # END - Get nextVal
-        if items:
-            return {'payload': items, 'nextVal': nextVal[0][0]}
+        ordinaryTableListItem = database_processor.fetch_data_in_database_pd_dataframe(sql_creation).to_dict(orient="records")
+        # START - Get nextId
+        QUERY_NEXTID_ORDINARY_TABLE = file_processor.read_sql_file(
+            "sql/ordinary_table/nextid_ordinary_table.sql")
+        sql_creation = QUERY_NEXTID_ORDINARY_TABLE
+        nextId = database_processor.fetch_data_in_database(sql_creation)
+        # END - Get nextId
+        if ordinaryTableListItem:
+            return {'payload': ordinaryTableListItem, 'autofill': {'id': nextId[0][0]}}
         api.abort(404)
-    
+
+
     @api.doc(parser=postParser)
     @api.doc(responses={
         400: 'Validation Error'
@@ -88,13 +90,14 @@ class GetOrdinaryTableItem(Resource):
         sql_creation = QUERY_INSERT_ORDINARY_TABLE_ITEM.format("\'{}\'".format(args['info']))
         sql_creation = sql_processor.handleNone(sql_creation)
         database_processor.insert_data_into_database(sql_creation)
-         # START Get nextVal
-        QUERY_NEXTVAL_ORDINARY_TABLE = file_processor.read_sql_file(
-            "sql/ordinary_table/nextval_ordinary_table.sql")
-        sql_creation = QUERY_NEXTVAL_ORDINARY_TABLE
-        nextVal = database_processor.fetch_data_in_database(sql_creation)
-        # END - Get nextVal
-        return ({'nextVal': nextVal[0][0]},201)
+         # START Get nextId
+        QUERY_NEXTID_ORDINARY_TABLE= file_processor.read_sql_file(
+            "sql/ordinary_table/nextid_ordinary_table.sql")
+        sql_creation = QUERY_NEXTID_ORDINARY_TABLE
+        nextId = database_processor.fetch_data_in_database(sql_creation)
+        # END - Get nextId
+        return ({'autofill': {'id': nextId[0][0]}},201)
+
 
     @api.doc(parser=updateParser)
     def put(self):

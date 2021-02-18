@@ -13,7 +13,9 @@ api = Namespace('versionised_table', description='Operations on table versionise
 # })
 
 model_versionised_table = api.model('versionised_table', {
-    'nextVal': fields.Integer(required=True, description='The next identifier;'),
+    'autofill': fields.Nested(api.model('ordinary_table_payload', {
+        'id': fields.Integer(required=True, description='The identifier; no primary key!')
+    })),
     'payload': fields.List(fields.Nested(api.model('ordinary_table_payload', {        
         'id': fields.Integer(required=True, description='The identifier'),
         'normal_col': fields.String(required=True, description='New values in this column will lead to versioning in table'),
@@ -23,7 +25,9 @@ model_versionised_table = api.model('versionised_table', {
 })
 
 post_model_versionised_table = api.model('versionised_table_post', {
-    'nextVal': fields.Integer(required=True, description='The next identifier;')
+    'autofill': fields.Nested(api.model('ordinary_table_payload', {
+        'id': fields.Integer(required=True, description='The identifier; no primary key!')
+    })),
 })
 
 updateParser = reqparse.RequestParser()
@@ -44,21 +48,19 @@ class GetVersionisedTableList(Resource):
     def get(self):    
         QUERY_SELECT_VERSIONISED_TABLE= file_processor.read_sql_file(
             "sql/tv_versionised_table/select_tv_versionised_table.sql")
-        sql_creation = QUERY_SELECT_VERSIONISED_TABLE
-       
-        VersionisedTableList = database_processor.fetch_data_in_database(sql_creation)
-        column = ['id','normal_col','update_col','ignore_col']
-        items = [dict(zip(column, row)) for row in VersionisedTableList]
-        # START Get nextVal
+        VersionisedTableList = database_processor.fetch_data_in_database_pd_dataframe(QUERY_SELECT_VERSIONISED_TABLE).to_dict(orient="records")
+        
+         # START - Get nextId
         QUERY_NEXTVAL_VERSIONISED_TABLE = file_processor.read_sql_file(
-            "sql/tv_versionised_table/nextval_tv_versionised_table.sql")
+            "sql/tv_versionised_table/nextid_tv_versionised_table.sql")
         sql_creation = QUERY_NEXTVAL_VERSIONISED_TABLE
-        nextVal = database_processor.fetch_data_in_database(sql_creation)
-        # END - Get nextVal
-        if items:
-            return {'payload': items, 'nextVal': nextVal[0][0]}
+        nextId = database_processor.fetch_data_in_database(sql_creation)
+        # END - Get nextId
+        if VersionisedTableList:
+            return {'payload': VersionisedTableList, 'autofill': {'id': nextId[0][0]}}
         api.abort(404)
 
+class GetVersionisedTableItem(Resource):        
     @api.doc(parser=updateParser)
     def put(self):
         args = updateParser.parse_args()
@@ -81,13 +83,13 @@ class GetVersionisedTableList(Resource):
         sql_creation = QUERY_INSERT_VERSIONISED_TABLE.format(args['id'], "\'{}\'".format(args['normal_col']), "\'{}\'".format(args['update_col']), "\'{}\'".format(args['ignore_col']))
         sql_creation = sql_processor.handleNone(sql_creation)
         database_processor.insert_data_into_database(sql_creation)
-         # START Get nextVal
+        # START Get nextId
         QUERY_NEXTVAL_VERSIONISED_TABLE = file_processor.read_sql_file(
             "sql/tv_versionised_table/nextval_tv_versionised_table.sql")
         sql_creation = QUERY_NEXTVAL_VERSIONISED_TABLE
-        nextVal = database_processor.fetch_data_in_database(sql_creation)
-        # END - Get nextVal
-        return ({'nextVal': nextVal[0][0]},201)
+        nextId = database_processor.fetch_data_in_database(sql_creation)
+        # END - Get nextId
+        return ({'autofill': {'id': nextId[0][0]}},201)
 
     @api.doc(parser=deleteParser)
     def delete(self):

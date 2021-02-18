@@ -21,8 +21,8 @@ basic_api = Api(app,
 
 ordinary_table_api = ordinary_table.api
 basic_api.add_namespace(ordinary_table_api,path='/ordinary')
-ordinary_table_api.add_resource(ordinary_table.GetOrdinaryTableList, '')
-ordinary_table_api.add_resource(ordinary_table.GetOrdinaryTableItem, '/item')
+ordinary_table_api.add_resource(ordinary_table.GetOrdinaryTableItem, '')
+ordinary_table_api.add_resource(ordinary_table.GetOrdinaryTableList, '/list')
 
 timeseries_table_api = timeseries_table.api
 basic_api.add_namespace(timeseries_table_api,path='/timeseries')
@@ -31,7 +31,8 @@ timeseries_table_api.add_resource(timeseries_table.GetTimeseriesTableItem, '/ite
 
 tv_versionised_table_api = tv_versionised_table.api
 basic_api.add_namespace(tv_versionised_table_api,path='/versionised')
-tv_versionised_table_api.add_resource(tv_versionised_table.GetVersionisedTableList,'')
+tv_versionised_table_api.add_resource(tv_versionised_table.GetVersionisedTableItem, '')
+tv_versionised_table_api.add_resource(tv_versionised_table.GetVersionisedTableList, '/list')
 
 tv_image_api = tv_image.api
 basic_api.add_namespace(tv_image_api,path='/image')
