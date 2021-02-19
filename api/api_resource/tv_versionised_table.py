@@ -30,10 +30,10 @@ post_model_versionised_table = api.model('versionised_table_post', {
     })),
 })
 
-updateParser = reqparse.RequestParser()
-updateParser.add_argument('id', required=True, type=int)
-updateParser.add_argument('column', required=True, type=str)
-updateParser.add_argument('value', required=True, type=str)
+updateCellParser = reqparse.RequestParser()
+updateCellParser.add_argument('id', required=True, type=int)
+updateCellParser.add_argument('column', required=True, type=str)
+updateCellParser.add_argument('value', required=True, type=str)
 
 insertParser = reqparse.RequestParser()
 insertParser.add_argument('id', required=True, type=int)
@@ -51,9 +51,9 @@ class GetVersionisedTableList(Resource):
         VersionisedTableList = database_processor.fetch_data_in_database_pd_dataframe(QUERY_SELECT_VERSIONISED_TABLE).to_dict(orient="records")
         
          # START - Get nextId
-        QUERY_NEXTVAL_VERSIONISED_TABLE = file_processor.read_sql_file(
+        QUERY_NEXTID_VERSIONISED_TABLE = file_processor.read_sql_file(
             "sql/tv_versionised_table/nextid_tv_versionised_table.sql")
-        sql_creation = QUERY_NEXTVAL_VERSIONISED_TABLE
+        sql_creation = QUERY_NEXTID_VERSIONISED_TABLE
         nextId = database_processor.fetch_data_in_database(sql_creation)
         # END - Get nextId
         if VersionisedTableList:
@@ -61,12 +61,12 @@ class GetVersionisedTableList(Resource):
         api.abort(404)
 
 class GetVersionisedTableItem(Resource):        
-    @api.doc(parser=updateParser)
+    @api.doc(parser=insertParser)
     def put(self):
-        args = updateParser.parse_args()
+        args = insertParser.parse_args()
         QUERY_UPDATE_VERSIONISED_TABLE = file_processor.read_sql_file(
         "sql/tv_versionised_table/update_tv_versionised_table.sql")
-        sql_creation = QUERY_UPDATE_VERSIONISED_TABLE.format(args['column'], "\'{}\'".format(args['value']),args['id'])
+        sql_creation = QUERY_UPDATE_VERSIONISED_TABLE.format("\'{}\'".format(args['normal_col']), "\'{}\'".format(args['update_col']), "\'{}\'".format(args['ignore_col']),args['id'])
 
         database_processor.insert_data_into_database(sql_creation)
         return 201
@@ -84,9 +84,9 @@ class GetVersionisedTableItem(Resource):
         sql_creation = sql_processor.handleNone(sql_creation)
         database_processor.insert_data_into_database(sql_creation)
         # START Get nextId
-        QUERY_NEXTVAL_VERSIONISED_TABLE = file_processor.read_sql_file(
-            "sql/tv_versionised_table/nextval_tv_versionised_table.sql")
-        sql_creation = QUERY_NEXTVAL_VERSIONISED_TABLE
+        QUERY_NEXTID_VERSIONISED_TABLE = file_processor.read_sql_file(
+            "sql/tv_versionised_table/nextid_tv_versionised_table.sql")
+        sql_creation = QUERY_NEXTID_VERSIONISED_TABLE
         nextId = database_processor.fetch_data_in_database(sql_creation)
         # END - Get nextId
         return ({'autofill': {'id': nextId[0][0]}},201)
@@ -97,6 +97,17 @@ class GetVersionisedTableItem(Resource):
         QUERY_DELETE_VERSIONISED_TABLE = file_processor.read_sql_file(
         "sql/tv_versionised_table/delete_tv_versionised_table.sql")
         sql_creation = QUERY_DELETE_VERSIONISED_TABLE.format(args['id'])
+
+        database_processor.insert_data_into_database(sql_creation)
+        return 201
+
+class GetVersionisedTableCell(Resource):        
+    @api.doc(parser=updateCellParser)
+    def put(self):
+        args = updateCellParser.parse_args()
+        QUERY_UPDATE_VERSIONISED_TABLE = file_processor.read_sql_file(
+        "sql/tv_versionised_table/update_cell_tv_versionised_table.sql")
+        sql_creation = QUERY_UPDATE_VERSIONISED_TABLE.format(args['column'], "\'{}\'".format(args['value']),args['id'])
 
         database_processor.insert_data_into_database(sql_creation)
         return 201

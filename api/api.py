@@ -32,6 +32,7 @@ timeseries_table_api.add_resource(timeseries_table.GetTimeseriesTableItem, '/ite
 tv_versionised_table_api = tv_versionised_table.api
 basic_api.add_namespace(tv_versionised_table_api,path='/versionised')
 tv_versionised_table_api.add_resource(tv_versionised_table.GetVersionisedTableItem, '')
+tv_versionised_table_api.add_resource(tv_versionised_table.GetVersionisedTableCell, '/cell')
 tv_versionised_table_api.add_resource(tv_versionised_table.GetVersionisedTableList, '/list')
 
 tv_image_api = tv_image.api
