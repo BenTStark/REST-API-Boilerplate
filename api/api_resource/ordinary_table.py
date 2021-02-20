@@ -27,7 +27,8 @@ post_model_ordinary_table = api.model('ordinary_table_post', {
     }))
 })
 
-
+postListParser = reqparse.RequestParser()
+postListParser.add_argument('payload', type=list, location='json')
 @api.response(404, 'Entry not found')
 class GetOrdinaryTableList(Resource):
     @api.marshal_with(model_ordinary_table)
@@ -45,6 +46,29 @@ class GetOrdinaryTableList(Resource):
         if ordinaryTableList:
             return {'payload': ordinaryTableList, 'autofill': {'id': nextId[0][0]}}
         api.abort(404)
+    
+    @api.doc(parser=postListParser)
+    def post(self):
+        args = postListParser.parse_args()
+        QUERY_INSERT_ORDINARY_TABLE_ITEM = file_processor.read_sql_file(
+            "sql/ordinary_table/insert_ordinary_table_item.sql")
+
+        sqlList = ''
+        for item in args["payload"]:
+            sql_creation = QUERY_INSERT_ORDINARY_TABLE_ITEM.format(
+                "\'{}\'".format(item['info']))
+            sql_creation = sql_processor.handleNone(sql_creation)
+            sqlList += sql_creation
+
+        database_processor.insert_data_into_database(sqlList)
+
+        # START Get nextId
+        QUERY_NEXTID_ORDINARY_TABLE = file_processor.read_sql_file(
+            "sql/ordinary_table/nextid_ordinary_table.sql")
+        sql_creation = QUERY_NEXTID_ORDINARY_TABLE
+        nextId = database_processor.fetch_data_in_database(sql_creation)
+        # END - Get nextId
+        return ({'autofill':{'id': nextId[0][0]}}, 201)
 
 
 getParser = reqparse.RequestParser()
